@@ -1,0 +1,6 @@
+[
+  {
+    "username": "admin",
+    "passwordHash": "GENERAR_CON: npx tsx backend/scripts/hashPassword.ts <password>"
+  }
+]
