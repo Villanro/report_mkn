@@ -5,7 +5,7 @@ import type { HierarchyGroup } from "@/types";
 import { fetchDays, fetchHierarchy } from "@/lib/api";
 import { useApiData } from "@/lib/useApiData";
 import { useDaySelection } from "@/lib/useDaySelection";
-import { colorClasses } from "@/lib/color";
+import { cellClasses, dotClasses } from "@/lib/color";
 import { formatSeconds } from "@/lib/format";
 import { DaySelector } from "@/components/DaySelector";
 import { ErrorMessage } from "@/components/ErrorMessage";
@@ -63,37 +63,64 @@ export default function Sos() {
       {!daysError && error && <ErrorMessage message={error} />}
       {!daysError && !error && !rows && <p className="text-sm text-gray-500">Cargando…</p>}
       {!daysError && rows && (
-        <div className="max-h-[70vh] overflow-auto rounded border border-gray-200 print:max-h-none print:overflow-visible">
-          <table className="w-full border-collapse text-sm">
-            <thead className="sticky top-0 z-[2] bg-gray-100">
-              <tr>
-                <th className="sticky left-0 z-[3] bg-gray-100 px-3 py-2 text-left text-xs font-semibold uppercase text-gray-600">
-                  {LEVELS.find((l) => l.value === level)?.label}
-                </th>
-                <th className="px-3 py-2 text-right text-xs font-semibold uppercase text-gray-600">
-                  Service Time
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((g, i) => {
-                const result = g.metrics.serviceTime;
-                return (
-                  <tr key={i} className="border-b border-gray-100">
-                    <td className="sticky left-0 z-[1] bg-white px-3 py-1.5">{labelFor(g)}</td>
-                    <td
-                      className={`whitespace-nowrap px-3 py-1.5 text-right ${colorClasses(
-                        result?.color
-                      )}`}
-                    >
-                      {result?.value !== undefined ? formatSeconds(result.value) : ""}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <>
+          <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500 print:hidden">
+            {(
+              [
+                { color: "green", label: "En objetivo" },
+                { color: "yellow", label: "Atención" },
+                { color: "red", label: "Acción requerida" },
+              ] as const
+            ).map(({ color, label }) => (
+              <span key={color} className="flex items-center gap-1.5">
+                <span className={`h-2.5 w-2.5 rounded-full ${dotClasses(color)}`} />
+                {label}
+              </span>
+            ))}
+          </div>
+          <div className="max-h-[70vh] overflow-auto rounded-lg border border-gray-200 shadow-sm print:max-h-none print:overflow-visible print:shadow-none">
+            <table className="w-full border-separate border-spacing-0 text-sm tabular-nums">
+              <thead className="sticky top-0 z-[2]">
+                <tr>
+                  <th className="sticky left-0 z-[3] min-w-[240px] border-b border-gray-300 bg-gray-100 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
+                    {LEVELS.find((l) => l.value === level)?.label}
+                  </th>
+                  <th className="border-b border-gray-300 bg-gray-100 px-3 py-2 text-right text-xs font-semibold uppercase tracking-wide text-gray-600">
+                    Service Time
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((g, i) => {
+                  const result = g.metrics.serviceTime;
+                  const rowBg = i % 2 === 1 ? "bg-slate-50/70" : "bg-white";
+                  return (
+                    <tr key={i} className={`border-b border-gray-100 ${rowBg}`}>
+                      <td className={`sticky left-0 z-[1] px-3 py-1.5 font-medium text-gray-700 ${rowBg}`}>
+                        <span className="flex items-center gap-2">
+                          <span
+                            className={`h-2 w-2 shrink-0 rounded-full ${
+                              result?.color ? dotClasses(result.color) : "bg-transparent"
+                            }`}
+                            aria-hidden
+                          />
+                          {labelFor(g)}
+                        </span>
+                      </td>
+                      <td
+                        className={`whitespace-nowrap px-3 py-1.5 text-right font-semibold ${cellClasses(
+                          result?.color
+                        )}`}
+                      >
+                        {result?.value !== undefined ? formatSeconds(result.value) : ""}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </div>
   );

@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from "react-router-dom";
+import { ChatWidget } from "@/components/ChatWidget";
 import { FilterBar } from "@/components/FilterBar";
 import { useFilters } from "@/lib/useFilters";
 import { useAuth } from "@/lib/useAuth";
@@ -75,6 +76,8 @@ export function Layout() {
       <main className="flex-1 p-4">
         <Outlet context={filters} />
       </main>
+
+      <ChatWidget />
     </div>
   );
 }

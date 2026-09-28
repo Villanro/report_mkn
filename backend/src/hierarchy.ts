@@ -21,6 +21,40 @@ function groupKey(row: OrdsRow, level: HierarchyLevel): string {
   return parts.join("␟");
 }
 
+export interface RowGroup {
+  division: string;
+  area: string;
+  district?: string;
+  store?: string;
+  rows: OrdsRow[];
+}
+
+/** Agrupa `rows` al nivel pedido sin agregar/computar métricas — usado por `buildHierarchy` y por
+ * las tools de cómputo (rank_stores/get_trend en chat/tools.ts) para reusar exactamente el mismo
+ * agrupamiento en vez de reimplementarlo. */
+export function groupRowsByLevel(rows: OrdsRow[], level: HierarchyLevel): RowGroup[] {
+  const groups = new Map<string, OrdsRow[]>();
+  for (const row of rows) {
+    const key = groupKey(row, level);
+    const bucket = groups.get(key);
+    if (bucket) bucket.push(row);
+    else groups.set(key, [row]);
+  }
+
+  const result: RowGroup[] = [];
+  for (const groupRows of groups.values()) {
+    const first = groupRows[0];
+    result.push({
+      division: first.division,
+      area: first.area,
+      district: level === "district" || level === "store" ? first.district : undefined,
+      store: level === "store" ? first.store : undefined,
+      rows: groupRows,
+    });
+  }
+  return result;
+}
+
 function computeMetrics(row: NumericRow, section: HierarchySection): Record<string, KpiResult> {
   switch (section) {
     case "detail":
@@ -86,26 +120,15 @@ function computeMetrics(row: NumericRow, section: HierarchySection): Record<stri
 
 /** Agrupa `rows` (ya filtradas por día y por los filtros activos) al nivel pedido y calcula las métricas de `section`. */
 export function buildHierarchy(rows: OrdsRow[], level: HierarchyLevel, section: HierarchySection): HierarchyGroup[] {
-  const groups = new Map<string, OrdsRow[]>();
-  for (const row of rows) {
-    const key = groupKey(row, level);
-    const bucket = groups.get(key);
-    if (bucket) bucket.push(row);
-    else groups.set(key, [row]);
-  }
+  const groups = groupRowsByLevel(rows, level);
 
-  const result: HierarchyGroup[] = [];
-  for (const groupRows of groups.values()) {
-    const first = groupRows[0];
-    const aggregated = aggregateRows(groupRows);
-    result.push({
-      division: first.division,
-      area: first.area,
-      district: level === "district" || level === "store" ? first.district : undefined,
-      store: level === "store" ? first.store : undefined,
-      metrics: computeMetrics(aggregated, section),
-    });
-  }
+  const result: HierarchyGroup[] = groups.map((group) => ({
+    division: group.division,
+    area: group.area,
+    district: group.district,
+    store: group.store,
+    metrics: computeMetrics(aggregateRows(group.rows), section),
+  }));
 
   result.sort((a, b) => {
     const key = (g: HierarchyGroup) => [g.division, g.area, g.district ?? "", g.store ?? ""].join("␟");

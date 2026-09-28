@@ -5,6 +5,7 @@ import { requireAuth } from "./auth/middleware.js";
 import { OrdsUnavailableError } from "./errors.js";
 import { authRouter } from "./routes/auth.js";
 import { bscRouter } from "./routes/bsc.js";
+import { chatRouter } from "./routes/chat.js";
 import { daysRouter } from "./routes/days.js";
 import { filtersRouter } from "./routes/filters.js";
 import { hierarchyRouter } from "./routes/hierarchy.js";
@@ -22,6 +23,7 @@ export function createApp() {
   app.use("/api", requireAuth, bscRouter);
   app.use("/api", requireAuth, hierarchyRouter);
   app.use("/api", requireAuth, refreshRouter);
+  app.use("/api", requireAuth, chatRouter);
 
   // Error handler central: cualquier error que llegue vía next(err) (ver asyncHandler.ts)
   // se convierte en una respuesta JSON — nunca en un crash del proceso.
