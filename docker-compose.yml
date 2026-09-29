@@ -3,8 +3,6 @@ services:
     build:
       context: ./backend
     restart: unless-stopped
-    env_file:
-      - ./backend/.env
     volumes:
       - ./backend/src/auth/users.json:/app/dist/auth/users.json:ro
     expose:
@@ -16,5 +14,5 @@ services:
     restart: unless-stopped
     depends_on:
       - backend
-    ports:
-      - "8080:80"
+    expose:
+      - "80"
