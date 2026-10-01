@@ -67,6 +67,7 @@ git push -u origin main
    - `JWT_SECRET` — **generar uno nuevo y fuerte para producción**, distinto del valor de desarrollo
      (`openssl rand -hex 32`).
    - `NODE_ENV=production`
+   - `KIMI_API_KEY` — API key real de Moonshot/Kimi, usada por el asistente de chat (`POST /api/chat`).
    - No definir `ORDS_MODE` en producción (solo se usa en desarrollo local).
 5. El archivo `backend/src/auth/users.json` (usuarios y hashes bcrypt) no va en el repo ni en variables de
    entorno — es un volumen montado (ver `docker-compose.yml`). Súbelo al servidor por fuera de Coolify (SCP/SFTP
